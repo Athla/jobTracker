@@ -35,10 +35,8 @@ func main() {
 
 	server := server.NewServer()
 
-	// Create a done channel to signal when the shutdown is complete
 	done := make(chan bool, 1)
 
-	// Run graceful shutdown in a separate goroutine
 	go gracefulShutdown(server, done)
 
 	err := server.ListenAndServe()
