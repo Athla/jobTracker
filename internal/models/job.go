@@ -6,11 +6,11 @@ import (
 )
 
 type Job struct {
-	ID          string
-	Name        string
-	Source      string
-	Description string
-	CreateAt    time.Time
+	ID          string    `json:"id" db:"id" form:"id"`
+	Name        string    `json:"name" db:"name" form:"name"`
+	Source      string    `json:"source" db:"source" form:"source"`
+	Description string    `json:"description" db:"description" form:"description"`
+	CreatedAt   time.Time `json:"createdat" db:"created_at" form:"created_at"`
 }
 
 func NewJob(name, source, description string, date string) (*Job, error) {
@@ -23,7 +23,7 @@ func NewJob(name, source, description string, date string) (*Job, error) {
 		Name:        name,
 		Source:      source,
 		Description: description,
-		CreateAt:    cDate,
+		CreatedAt:   cDate,
 	}, nil
 }
 
