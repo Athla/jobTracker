@@ -10,7 +10,7 @@ type Job struct {
 	Name        string    `json:"name" db:"name" form:"name"`
 	Source      string    `json:"source" db:"source" form:"source"`
 	Description string    `json:"description" db:"description" form:"description"`
-	CreatedAt   time.Time `json:"createdat" db:"created_at" form:"created_at"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at" form:"created_at"` // Match JSON with DB field
 }
 
 func NewJob(name, source, description string, date string) (*Job, error) {

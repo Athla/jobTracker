@@ -1,48 +1,42 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import JobCard from './components/card/cardJob'
+import { Job } from './components/card/cardJob'
+import CreateJob from './components/card/CreateJob'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   const fetchData = () => {
-    fetch('http://localhost:8080/')
-      .then(response => response.text())
-      .then(data => setMessage(data))
+    fetch('http://localhost:8080/api/jobs')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data)
+        const formattedData = data.map((job: any) => ({
+          Id: job.id,
+          Name: job.name,
+          Source: job.source,
+          Description: job.description,
+          CreatedAt: job.createdat,
+        }));
+        setMessage(formattedData);
+      })
       .catch(error => console.error('Error fetching data:', error))
   }
-  const [message, setMessage] = useState<string>('')
+  
+  const [message, setMessage] = useState<Job[]>([])
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <CreateJob />
       <button onClick={fetchData}>
-        Click to fetch from Go server
+        Click to fetch from Go server! Click here!
       </button>
-      {message && (
+      {message.length > 0 && (
         <div>
           <h2>Server Response:</h2>
-          <p>{message}</p>
+          {message.map((job: Job) => (
+            <JobCard key={job.Id} job={job} />
+          ))}
         </div>
       )}
     </>

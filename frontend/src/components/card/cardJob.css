@@ -1,0 +1,26 @@
+.job-card {
+  border: 1px solid #ccc; /* Add a light border */
+  border-radius: 8px; /* Rounded corners */
+  padding: 10px; /* Padding inside the card */
+  margin: 10px; /* Margin around the card */
+  background-color: #f9f9f9; /* Light background color */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  max-width: 200px; /* Limit the width of the card */
+  font-family: Arial, sans-serif; /* Font style */
+}
+
+.job-card h1 {
+  font-size: 1.2em; /* Smaller font size for the title */
+  margin: 0; /* Remove default margin */
+}
+
+.job-card p {
+  font-size: 0.9em; /* Smaller font size for the description */
+  margin: 5px 0; /* Margin for spacing */
+}
+
+.job-card small {
+  display: block; /* Stack the small text */
+  font-size: 0.8em; /* Smaller font size for additional info */
+  color: #666; /* Gray color for less emphasis */
+}

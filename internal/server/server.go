@@ -39,7 +39,7 @@ func NewServer() *http.Server {
 	return server
 }
 
-func (s *Server) CreateNewJob(job *models.Job) error {
+func (s *Server) CreateNewJob(job models.Job) error {
 	if s.db == nil {
 		log.Fatal("Null database, unable to interact and create data.")
 	}
@@ -47,12 +47,30 @@ func (s *Server) CreateNewJob(job *models.Job) error {
 	if err != nil {
 		return err
 	}
-	if _, err := tx.NamedExec(database.CreateJobQuery, job); err != nil {
+
+	if _, err := tx.NamedExec(database.CreateJobQuery, &job); err != nil {
 		log.Errorf("Unable to create entry due: %v", err)
 		tx.Rollback()
 		return err
 	}
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		log.Errorf("Unable to commit the transaction due: %v", err)
+		return err
+	}
+
+	log.Info("Commited the job %v to the database", job)
+
+	return nil
+}
+
+func (s *Server) GetAllJobs(jobs *[]models.Job) error {
+	if s.db == nil {
+		log.Fatal("Null database, unable to interact and create data.")
+	}
+
+	if err := s.db.Select(jobs, database.GetAllJobs); err != nil {
+		return err
+	}
 
 	return nil
 }

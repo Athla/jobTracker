@@ -4,6 +4,7 @@ import (
 	"jobTracker/internal/models"
 	"net/http"
 
+	"github.com/charmbracelet/log"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -42,8 +43,15 @@ func (s *Server) HelloWorldHandler(c *gin.Context) {
 func (s *Server) GetSpecificJobHandler(c *gin.Context) {
 
 }
-
 func (s *Server) JobHandler(c *gin.Context) {
+	// Return a slice of jobs to the front-end
+	var jobs []models.Job
+	if err := s.GetAllJobs(&jobs); err != nil {
+		log.Errorf("Unable to get data due: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"Failure": "Unable to get data."})
+		return
+	}
+	c.JSON(http.StatusOK, jobs)
 
 }
 
@@ -56,13 +64,14 @@ func (s *Server) CreateJobHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"Failure": "Unable to create new job."})
 		return
 	}
-	if err := s.CreateNewJob(&newJob); err != nil {
+	log.Infof("Job to be created: %v", newJob)
+	if err := s.CreateNewJob(newJob); err != nil {
+		log.Errorf("Error during creation: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"Failure": "Unable to create new job."})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Success": "Job created successfully!"})
-
 }
 
 func (s *Server) DeleteJobHandler(c *gin.Context) {
