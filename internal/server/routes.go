@@ -1,8 +1,10 @@
 package server
 
 import (
+	"fmt"
 	"jobTracker/internal/models"
 	"net/http"
+	"strconv"
 
 	"github.com/charmbracelet/log"
 	"github.com/gin-contrib/cors"
@@ -23,11 +25,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.GET("/health", s.healthHandler)
 	api := r.Group("/api/jobs")
 	{
-		api.POST("/", s.CreateJobHandler)         // Create a job
-		api.GET("/", s.JobHandler)                // Get all, queryied to get a specific one
-		api.GET("/{id}", s.GetSpecificJobHandler) // Get all, queryied to get a specific one
-		api.PUT("/{id}", s.EditJobHandler)        // Update, idempotently, a job
-		api.DELETE("/{id}", s.DeleteJobHandler)   // Delete a job based on it's ide
+		api.POST("/", s.CreateJobHandler)                // Create a job
+		api.GET("/", s.JobHandler)                       // Get all, queryied to get a specific one
+		api.GET("/:id", s.GetSpecificJobHandler)         // Get all, queryied to get a specific one
+		api.PUT("/:id", s.EditJobHandler)                // Update, idempotently, a job
+		api.DELETE("/:id", s.DeleteJobHandler)           // Delete a job based on it's ide
+		api.DELETE("/deleteAll", s.DeleteAllJobsHandler) // Delete a job based on it's idel
 	}
 
 	return r
@@ -75,7 +78,36 @@ func (s *Server) CreateJobHandler(c *gin.Context) {
 }
 
 func (s *Server) DeleteJobHandler(c *gin.Context) {
+	rawId := c.Param("id")
+	if rawId != "" {
+		id, err := strconv.Atoi(rawId)
+		if err != nil {
+			log.Error(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"Failure": "Unable to delete job."})
+			return
+		}
 
+		if err := s.DeleteJob(&id); err != nil {
+			log.Error(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"Failure": "Unable to delete job."})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"Success": fmt.Sprintf("Successfully deleted of id: %v", id)})
+		return
+	}
+	log.Error("Unable to parse id.")
+	// This shouldn't happen since ID will be forced to be a number in the creation.
+	c.JSON(http.StatusBadRequest, gin.H{"Failure": "No ID found."})
+	return
+}
+func (s *Server) DeleteAllJobsHandler(c *gin.Context) {
+	if err := s.DeleteAllJobs(); err != nil {
+		log.Error(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"Failure": "Unable to delete job."})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"Success": fmt.Sprintf("Successfully deleted all jobs")})
+	return
 }
 
 func (s *Server) EditJobHandler(c *gin.Context) {

@@ -39,10 +39,46 @@ func NewServer() *http.Server {
 	return server
 }
 
+func (s *Server) DeleteAllJobs() error {
+	if s.db == nil {
+		log.Fatal("Null database, unable to interact and create data.")
+	}
+
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(database.DeleteAllQuery); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+func (s *Server) DeleteJob(id *int) error {
+	if s.db == nil {
+		log.Fatal("Null database, unable to interact and create data.")
+	}
+
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(database.DeleteIdQuery, id); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
 func (s *Server) CreateNewJob(job models.Job) error {
 	if s.db == nil {
 		log.Fatal("Null database, unable to interact and create data.")
 	}
+
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return err
