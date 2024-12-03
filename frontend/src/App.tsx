@@ -1,19 +1,18 @@
-import { useState, useEffect } from 'react'
-import './App.css'
-import JobCard from './components/card/CardJob'
-import { Job } from './components/card/CardJob'
-import CreateJob from './components/card/CreateJob'
-import DeleteAll from './components/DeleteAll'
+import { useState, useEffect } from "react";
+import "./App.css";
+import JobCard from "./components/card/CardJob";
+import { Job } from "./components/card/CardJob";
+import CreateJob from "./components/card/CreateJob";
+import DeleteAll from "./components/DeleteAll";
 
 function App() {
-
-  const [message, setMessage] = useState<Job[]>([])
+  const [message, setMessage] = useState<Job[]>([]);
 
   const fetchData = () => {
-    fetch('http://localhost:8080/api/jobs')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data)
+    fetch("http://localhost:8080/api/jobs")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
         const formattedData = data.map((job: any) => ({
           Id: job.id,
           Name: job.name,
@@ -23,8 +22,8 @@ function App() {
         }));
         setMessage(formattedData);
       })
-      .catch(error => console.error('Error fetching data:', error))
-  }
+      .catch((error) => console.error("Error fetching data:", error));
+  };
 
   useEffect(() => {
     fetchData(); // Fetch data immediately on mount
@@ -39,16 +38,15 @@ function App() {
   return (
     <>
       <DeleteAll onDeleteAll={fetchData} />
-      <button 
-        onClick={fetchData} 
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" 
-        style={{ position: 'absolute', top: '20px', left: '20px' }}
+      <button
+        onClick={fetchData}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        style={{ position: "absolute", top: "20px", left: "20px" }}
       >
         Update jobs!
       </button>
       {message.length > 0 && (
         <div>
-          <h2>Server Response:</h2>
           {message.map((job: Job) => (
             <JobCard key={job.Id} job={job} onDelete={() => {}} />
           ))}
@@ -56,7 +54,7 @@ function App() {
       )}
       <CreateJob />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
