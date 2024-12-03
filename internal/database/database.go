@@ -1,9 +1,10 @@
 package database
 
 import (
+	"os"
+
 	"github.com/charmbracelet/log"
 	"github.com/jmoiron/sqlx"
-	"os"
 
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/mattn/go-sqlite3"
@@ -31,7 +32,7 @@ func New() *sqlx.DB {
 
 	if _, err := db.Exec(`
         CREATE TABLE IF NOT EXISTS jobs (
-            id TEXT PRIMARY KEY,
+            id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             source TEXT NOT NULL,
             description TEXT,

@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { Button } from "./ui/button";
 
 interface DeleteAllProps {
   onDeleteAll: () => void;
@@ -7,25 +8,26 @@ interface DeleteAllProps {
 const DeleteAll: React.FC<DeleteAllProps> = ({ onDeleteAll }) => {
   const handleDeleteAll = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/jobs/deleteAll', {
-        method: 'DELETE',
+      const response = await fetch("http://localhost:8080/api/jobs/deleteAll", {
+        method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error('Failed to delete all jobs');
+        throw new Error("Failed to delete all jobs");
       }
       onDeleteAll(); // Call the parent function to update the state
     } catch (error) {
-      console.error('Error deleting all jobs', error);
+      console.error("Error deleting all jobs", error);
     }
   };
 
   return (
-    <button 
+    <Button
+      variant="destructive"
       onClick={handleDeleteAll}
-      className="bg-red-50 text-red-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors duration-200"
+      className="hover:bg-destructive/90"
     >
       Delete All Jobs
-    </button>
+    </Button>
   );
 };
 

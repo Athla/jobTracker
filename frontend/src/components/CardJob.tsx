@@ -7,6 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+
 import { useState } from "react";
 
 export interface Job {
@@ -15,13 +17,13 @@ export interface Job {
   Source: string;
   Description: string;
   CreatedAt: string;
+  Status?: "APPLIED" | "INTERVIEW" | "REJECTED" | "ACCEPTED";
 }
 
 interface JobCardProps {
   job: Job;
   onDelete: (id: string | number) => void;
 }
-
 const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -44,18 +46,43 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
     }
   };
 
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case "APPLIED":
+        return "bg-blue-100 text-blue-800";
+      case "INTERVIEW":
+        return "bg-yellow-100 text-yellow-800";
+      case "REJECTED":
+        return "bg-red-100 text-red-800";
+      case "ACCEPTED":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
     <Card className="relative">
       <CardHeader>
         <div className="flex justify-between items-start">
-          <CardTitle>{job.Name}</CardTitle>
+          <div>
+            <CardTitle>{job.Name}</CardTitle>
+            {job.Status && (
+              <span
+                className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mt-2 ${getStatusColor(job.Status)}`}
+              >
+                {job.Status}
+              </span>
+            )}
+          </div>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={handleDelete}
             disabled={isDeleting}
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
         <CardDescription>

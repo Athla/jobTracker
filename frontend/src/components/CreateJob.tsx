@@ -35,7 +35,11 @@ const CreateJob: React.FC = () => {
       name: "",
       source: "",
       description: "",
-      createdat: "",
+      createdat: (() => {
+        const today = new Date();
+        today.setHours(12, 0, 0, 0); // Set to 12:00:00
+        return today.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:mm
+      })(),
     },
   });
 
@@ -75,7 +79,9 @@ const CreateJob: React.FC = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Create Job</Button>
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          Create Job
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -134,7 +140,7 @@ const CreateJob: React.FC = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Creating..." : "Create Job"}
             </Button>
           </form>
