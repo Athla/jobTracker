@@ -27,6 +27,15 @@ func NewJob(name, source, description string, date string) (*Job, error) {
 	}, nil
 }
 
+func (j *Job) ParseDate(date string) error {
+	cDate, err := utils.ConvertDate(date)
+	if err != nil {
+		return err
+	}
+	j.CreatedAt = cDate
+	return nil
+}
+
 func (j *Job) Edit() error {
 
 	return nil

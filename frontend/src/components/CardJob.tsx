@@ -61,15 +61,40 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Date not available";
+      }
+
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "UTC", // Add this line to handle UTC dates
+      }).format(date);
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Date not available";
+    }
+  };
+
   return (
-    <Card className="relative">
+    <Card className="relative transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:-translate-y-1 hover:bg-card/80 backdrop-blur-sm">
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>{job.Name}</CardTitle>
+          <div className="transition-transform duration-200 ease-in-out">
+            <CardTitle className="transition-colors duration-200 hover:text-primary">
+              {job.Name}
+            </CardTitle>
             {job.Status && (
               <span
-                className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mt-2 ${getStatusColor(job.Status)}`}
+                className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mt-2 transition-all duration-200 ease-in-out hover:scale-105 ${getStatusColor(
+                  job.Status,
+                )}`}
               >
                 {job.Status}
               </span>
@@ -80,19 +105,23 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
             size="icon"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="h-8 w-8 text-muted-foreground transition-colors duration-200 hover:text-destructive hover:bg-destructive/10 hover:scale-110"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-        <CardDescription>
-          {new Date(job.CreatedAt).toLocaleString()}
+        <CardDescription className="transition-opacity duration-200 group-hover:opacity-90">
+          {formatDate(job.CreatedAt)}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <p className="text-sm font-medium">Source: {job.Source}</p>
-          <p className="text-sm">{job.Description}</p>
+          <p className="text-sm font-medium transition-colors duration-200 hover:text-primary/80">
+            Source: {job.Source}
+          </p>
+          <p className="text-sm transition-colors duration-200 hover:text-foreground/90">
+            {job.Description}
+          </p>
         </div>
       </CardContent>
     </Card>

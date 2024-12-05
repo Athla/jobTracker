@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import "./App.css";
 import JobCard from "./components/CardJob";
@@ -19,7 +20,7 @@ function App() {
           name: string;
           source: string;
           description: string;
-          createdat: string;
+          created_at: string;
         }
 
         const formattedData = data.map((job: JobData) => ({
@@ -27,7 +28,7 @@ function App() {
           Name: job.name,
           Source: job.source,
           Description: job.description,
-          CreatedAt: job.createdat,
+          CreatedAt: job.created_at,
         }));
         setMessage(formattedData);
       })
@@ -60,10 +61,19 @@ function App() {
 
       {message.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
-          {" "}
-          {/* Changed to 3 columns */}
-          {message.map((job: Job) => (
-            <JobCard key={job.Id} job={job} onDelete={() => {}} />
+          {message.map((job: Job, index: number) => (
+            <motion.div
+              key={job.Id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.4,
+                delay: index * 0.1, // Creates a stagger effect
+                ease: "easeOut",
+              }}
+            >
+              <JobCard job={job} onDelete={() => {}} />
+            </motion.div>
           ))}
         </div>
       )}

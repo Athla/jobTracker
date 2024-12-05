@@ -127,6 +127,7 @@ button:focus-visible {
 
 @layer base {
     :root {
+        /* Light theme colors - keeping as fallback */
         --background: 0 0% 100%;
         --foreground: 240 10% 3.9%;
         --card: 0 0% 100%;
@@ -150,24 +151,137 @@ button:focus-visible {
     }
 
     .dark {
-        --background: 240 10% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 240 10% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 240 10% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 240 5.9% 10%;
-        --secondary: 240 3.7% 15.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 240 3.7% 15.9%;
-        --muted-foreground: 240 5% 64.9%;
-        --accent: 240 3.7% 15.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 3.7% 15.9%;
-        --input: 240 3.7% 15.9%;
-        --ring: 240 4.9% 83.9%;
+        /* Updated dark theme colors for softer contrast */
+        --background: 220 10% 12%; /* Darker, more muted background */
+        --foreground: 220 15% 90%; /* Softer white text */
+
+        --card: 220 10% 15%; /* Slightly lighter than background */
+        --card-foreground: 220 15% 85%;
+
+        --popover: 220 10% 15%;
+        --popover-foreground: 220 15% 85%;
+
+        --primary: 220 10% 80%; /* Softer primary color */
+        --primary-foreground: 220 10% 12%;
+
+        --secondary: 220 10% 20%; /* Muted secondary */
+        --secondary-foreground: 220 15% 85%;
+
+        --muted: 220 10% 20%;
+        --muted-foreground: 220 10% 60%; /* Better for secondary text */
+
+        --accent: 220 10% 25%; /* Subtle accent */
+        --accent-foreground: 220 15% 85%;
+
+        --destructive: 0 50% 40%; /* Less harsh destructive red */
+        --destructive-foreground: 220 15% 85%;
+
+        --border: 220 10% 25%;
+        --input: 220 10% 20%;
+        --ring: 220 15% 60%;
     }
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.025em;
+}
+
+/* Improve text readability */
+p,
+.text-body {
+    line-height: 1.7;
+    color: hsl(var(--foreground) / 0.9);
+}
+
+/* Better heading contrast */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+/* Improve form input readability */
+input,
+textarea,
+select {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+}
+
+/* Better focus states */
+:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+}
+
+/* Card improvements */
+.card {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.2);
+    box-shadow:
+        0 1px 3px 0 rgb(0 0 0 / 0.1),
+        0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+@layer utilities {
+    .animate-in {
+        animation: animate-in 0.5s ease-out;
+    }
+
+    .hover-elevate {
+        @apply transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg hover:-translate-y-1;
+    }
+
+    .hover-glow {
+        @apply transition-all duration-300 ease-in-out hover:shadow-[0_0_15px_rgba(var(--primary),0.1)];
+    }
+}
+
+/* Keyframes for animations */
+@keyframes animate-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+select,
+textarea {
+    @apply transition-all duration-200 ease-in-out;
+}
+
+/* Card hover effects */
+.card {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.card:hover {
+    @apply shadow-lg;
+    transform: translateY(-2px);
+}
+
+/* Status badge animations */
+.status-badge {
+    @apply transition-all duration-200 ease-in-out hover:scale-105;
+}
+
+/* Delete button animation */
+.delete-button {
+    @apply transition-all duration-200 ease-in-out hover:rotate-12;
 }
