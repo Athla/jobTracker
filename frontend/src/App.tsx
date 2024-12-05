@@ -8,7 +8,7 @@ import DeleteAll from "./components/DeleteAll";
 import { Button } from "./components/ui/button";
 
 function App() {
-  const [message, setMessage] = useState<Job[]>([]);
+  const [data, setData] = useState<Job[]>([]);
 
   const fetchData = () => {
     fetch("http://localhost:8080/api/jobs")
@@ -30,7 +30,7 @@ function App() {
           Description: job.description,
           CreatedAt: job.created_at,
         }));
-        setMessage(formattedData);
+        setData(formattedData);
       })
       .catch((error) => console.error("Error fetching data:", error));
   };
@@ -59,12 +59,12 @@ function App() {
         <CreateJob />
       </div>
 
-      {message.length > 0 && (
+      {data.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
-          {message.map((job: Job, index: number) => (
+          {data.map((job: Job, index: number) => (
             <motion.div
               key={job.Id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
                 duration: 0.4,

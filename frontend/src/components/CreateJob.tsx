@@ -23,7 +23,7 @@ interface JobFormData {
   name: string;
   source: string;
   description: string;
-  createdat: string;
+  created_at: string;
 }
 
 const CreateJob: React.FC = () => {
@@ -35,7 +35,7 @@ const CreateJob: React.FC = () => {
       name: "",
       source: "",
       description: "",
-      createdat: (() => {
+      created_at: (() => {
         const today = new Date();
         today.setHours(12, 0, 0, 0); // Set to 12:00:00
         return today.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:mm
@@ -48,7 +48,7 @@ const CreateJob: React.FC = () => {
 
     const newJob = {
       ...data,
-      createdat: new Date(data.createdat).toISOString(),
+      created_at: new Date(data.created_at).toISOString(),
     };
 
     try {
@@ -83,12 +83,18 @@ const CreateJob: React.FC = () => {
           Create Job
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="dialog-content sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Job</DialogTitle>
           <DialogDescription>
             Fill out the form below to create a new job entry.
           </DialogDescription>
+          <Button
+            onClick={() => setIsOpen(false)}
+            className="absolute top-1 right-2 p-1 text-sm"
+          >
+            Close
+          </Button>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -130,7 +136,7 @@ const CreateJob: React.FC = () => {
             />
             <FormField
               control={form.control}
-              name="createdat"
+              name="created_at"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Created Date</FormLabel>

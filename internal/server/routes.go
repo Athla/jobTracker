@@ -5,6 +5,7 @@ import (
 	"jobTracker/internal/models"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/gin-contrib/cors"
@@ -67,6 +68,15 @@ func (s *Server) CreateJobHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"Failure": "Unable to create new job."})
 		return
 	}
+
+	createdAt, err := time.Parse(time.RFC3339, newJob.CreatedAt)
+	if err != nil {
+		log.Fatalf("Current err: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"Failure": "Invalid date format"})
+		return
+	}
+
+	newJob.CreatedAt = createdAt.Format(time.RFC3339)
 	log.Infof("Job to be created: %v", newJob)
 	if err := s.CreateNewJob(newJob); err != nil {
 		log.Errorf("Error during creation: %v", err)
