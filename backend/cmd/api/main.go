@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"jobTracker/internal/server"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func gracefulShutdown(apiServer *http.Server, done chan bool) {
@@ -32,7 +34,6 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 }
 
 func main() {
-
 	server := server.NewServer()
 
 	done := make(chan bool, 1)
@@ -44,7 +45,6 @@ func main() {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}
 
-	// Wait for the graceful shutdown to complete
 	<-done
 	log.Println("Graceful shutdown complete.")
 }

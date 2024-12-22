@@ -10,7 +10,6 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/joho/godotenv/autoload"
 
 	"jobTracker/internal/database"
 	"jobTracker/internal/models"
@@ -22,7 +21,10 @@ type Server struct {
 }
 
 func NewServer() *http.Server {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Fatalf("Unable to parse the port due: %v", err)
+	}
 	NewServer := &Server{
 		port: port,
 		db:   database.New(),
@@ -35,6 +37,7 @@ func NewServer() *http.Server {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
+	log.Info("Server running on address: %s", server.Addr)
 
 	return server
 }
