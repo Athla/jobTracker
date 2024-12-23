@@ -41,5 +41,14 @@ func New() *sqlx.DB {
 		log.Fatalf("Unable to create table due: %v", err)
 	}
 
+	if _, err := db.Exec(
+		`CREATE TABLE IF NOT EXISTS users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT UNIQUE NOT NULL,
+		password TEXT NOT NULL
+	);`); err != nil {
+		log.Fatalf("Unable to create table due: %v", err)
+	}
+
 	return db
 }
