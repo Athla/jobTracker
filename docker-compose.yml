@@ -1,10 +1,6 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: backend
-    container_name: jobtracker-backend
+    image: job-tracker-backend
     restart: unless-stopped
     ports:
       - "${PORT:-8080}:8080"
@@ -21,20 +17,14 @@ services:
       retries: 3
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: frontend
-    container_name: jobtracker-frontend
+    image: job-tracker-frontend
     restart: unless-stopped
-    ports:
-      - "80:80"
     depends_on:
       - backend
-    environment:
-      - VITE_API_URL=http://localhost:8080
+    ports:
+      - "80:80" # Map Nginx port to host port 80
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      test: ["CMD", "wget", "-qO-", "http://localhost"]
       interval: 30s
       timeout: 10s
       retries: 3
