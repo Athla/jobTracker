@@ -26,6 +26,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	{
 		users.POST("/register", s.RegisterUserHandler)
 		users.POST("/login", s.LoginUserHandler)
+		users.POST("/logout", s.LogoutUserHandler)
 	}
 
 	return r
