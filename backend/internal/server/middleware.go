@@ -25,6 +25,13 @@ func AuthMiddleware() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+
+		if utils.IsBlacklisted(tokenStr) {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or Unauthorized."})
+			ctx.Abort()
+			return
+		}
+
 		claims, err := utils.ValidateJWT(tokenStr)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token!"})

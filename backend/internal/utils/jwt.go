@@ -2,6 +2,7 @@ package utils
 
 import (
 	"os"
+	"sync"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -37,4 +38,35 @@ func ValidateJWT(tokenStr string) (*Claims, error) {
 	}
 
 	return claims, nil
+}
+
+var blacklist = struct {
+	sync.RWMutex
+	tokens map[string]int64
+}{
+	tokens: make(map[string]int64),
+}
+
+func AddTokenToBlackList(token string, exp int64) {
+	blacklist.RLock()
+	defer blacklist.RUnlock()
+
+	blacklist.tokens[token] = exp
+}
+
+func IsBlacklisted(token string) bool {
+	blacklist.RLock()
+	defer blacklist.RUnlock()
+
+	exp, exists := blacklist.tokens[token]
+	if !exists {
+		return false
+	}
+
+	if time.Now().Unix() > exp {
+		delete(blacklist.tokens, token)
+		return false
+	}
+
+	return true
 }

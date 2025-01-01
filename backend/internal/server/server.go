@@ -37,7 +37,7 @@ func NewServer() *http.Server {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
-	log.Info("Server running on address: %s", server.Addr)
+	log.Infof("Server running on address: %s", server.Addr)
 
 	return server
 }
