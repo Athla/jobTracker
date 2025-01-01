@@ -3,13 +3,17 @@ import { Button } from "./ui/button";
 
 interface DeleteAllProps {
   onDeleteAll: () => void;
+  token: string;
 }
 
-const DeleteAll: React.FC<DeleteAllProps> = ({ onDeleteAll }) => {
+const DeleteAll: React.FC<DeleteAllProps> = ({ onDeleteAll, token }) => {
   const handleDeleteAll = async () => {
     try {
       const response = await fetch("http://localhost:8080/api/jobs/deleteAll", {
         method: "DELETE",
+        headers: {
+          Authorization: `${token}`,
+        },
       });
       if (!response.ok) {
         throw new Error("Failed to delete all jobs");

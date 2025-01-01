@@ -22,9 +22,10 @@ export interface Job {
 
 interface JobCardProps {
   job: Job;
-  onDelete: (id: string | number) => void;
+  onDelete: (id: string) => void;
+  token: string;
 }
-const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onDelete, token }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -34,6 +35,9 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
     try {
       const response = await fetch(`http://localhost:8080/api/jobs/${job.Id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!response.ok) {
         throw new Error("Failed to delete job");

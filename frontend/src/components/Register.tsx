@@ -10,61 +10,70 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { registerUser } from "@/auth/endpoints";
 
-interface LoginFormData {
+interface RegisterFormData {
   username: string;
   password: string;
 }
 
-interface LoginProps {
-  onLogin: (token: string) => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const Register: React.FC = () => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const form = useForm<LoginFormData>({
+
+  const form = useForm<RegisterFormData>({
     defaultValues: {
       username: "",
       password: "",
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: RegisterFormData) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:8080/users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to login");
-      }
-
-      const responseData = await response.json();
-      console.log("Login successful:", responseData);
-      onLogin(responseData.token); // Call onLogin with the token
+      await registerUser(data.username, data.password);
+      alert("Registration successful!");
+      form.reset();
+      setIsOpen(false);
     } catch (error) {
-      console.error("Error logging in:", error);
-      setError("Invalid username or password");
+      console.error("Error registering:", error);
+      setError("Registration failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Card className="max-w-md mx-auto mt-10">
-      <CardHeader>
-        <CardTitle>Login</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          Register
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="dialog-content sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Register</DialogTitle>
+          <DialogDescription>
+            Fill out the form below to create a new account.
+          </DialogDescription>
+          <Button
+            onClick={() => setIsOpen(false)}
+            className="absolute top-1 right-2 p-1 text-sm"
+          >
+            Close
+          </Button>
+        </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -99,13 +108,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             />
             {error && <p className="text-destructive">{error}</p>}
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Logging in..." : "Login"}
+              {isSubmitting ? "Registering..." : "Register"}
             </Button>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default Login;
+export default Register;

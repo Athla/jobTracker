@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Job } from "./CardJob";
 
 interface JobFormData {
   name: string;
@@ -26,7 +27,12 @@ interface JobFormData {
   created_at: string;
 }
 
-const CreateJob: React.FC = () => {
+interface CreateJobProps {
+  onCreate: (newJob: Job) => void;
+  token: string;
+}
+
+const CreateJob: React.FC<CreateJobProps> = ({ onCreate, token }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -56,6 +62,7 @@ const CreateJob: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `${token}`,
         },
         body: JSON.stringify(newJob),
       });
@@ -67,6 +74,7 @@ const CreateJob: React.FC = () => {
       const responseData = await response.json();
       console.log(responseData);
 
+      onCreate(responseData);
       form.reset();
       setIsOpen(false);
     } catch (error) {
