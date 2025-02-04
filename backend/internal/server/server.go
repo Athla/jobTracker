@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -112,6 +113,26 @@ func (s *Server) GetAllJobs(jobs *[]models.Job) error {
 	}
 
 	return nil
+}
+
+func (s *Server) updateJobStatus(id string, status string) error {
+	if s.db == nil {
+		return errors.New("Database conn not initialized.")
+	}
+
+	tx, err := s.db.Beginx()
+	if err != nil {
+		log.Errorf("Unable to create transaction due: %s", err)
+		return err
+	}
+
+	if _, err := tx.Exec(database.UpdateJobStatusQuery, status, id); err != nil {
+		log.Errorf("Unable to execute transaction due: %s", err)
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *Server) Health() map[string]string {

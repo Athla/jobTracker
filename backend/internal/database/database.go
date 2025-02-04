@@ -30,24 +30,9 @@ func New() *sqlx.DB {
 		log.Fatalf("Unable to connect to database due: %v", err)
 	}
 
-	if _, err := db.Exec(`
-        CREATE TABLE IF NOT EXISTS jobs (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            source TEXT NOT NULL,
-            description TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );`); err != nil {
-		log.Fatalf("Unable to create table due: %v", err)
-	}
-
-	if _, err := db.Exec(
-		`CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT UNIQUE NOT NULL,
-		password TEXT NOT NULL
-	);`); err != nil {
-		log.Fatalf("Unable to create table due: %v", err)
+	if err := RunMigrations(db); err != nil {
+		log.Fatalf("Unable to run migrations due: %s", err)
+		return nil
 	}
 
 	return db

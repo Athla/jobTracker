@@ -21,6 +21,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		api.PUT("/:id", s.EditJobHandler)                // Update, idempotently, a job
 		api.DELETE("/:id", s.DeleteJobHandler)           // Delete a job based on it's ide
 		api.DELETE("/deleteAll", s.DeleteAllJobsHandler) // Delete a job based on it's idel
+		api.PATCH("/:id/status", s.UpdateJobStatusHandler)
 	}
 	users := r.Group("/users/")
 	{
