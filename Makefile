@@ -59,4 +59,5 @@ watch:
             fi; \
         fi
 
+# Add a script to reload my database -> create a migration process
 .PHONY: all build run test clean watch
