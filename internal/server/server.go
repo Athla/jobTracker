@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -21,14 +20,10 @@ type Server struct {
 	db   *sqlx.DB
 }
 
-func NewServer() *http.Server {
-	port, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
-		log.Fatalf("Unable to parse the port due: %v", err)
-	}
+func New(db *sqlx.DB, port int) *http.Server {
 	NewServer := &Server{
 		port: port,
-		db:   database.New(),
+		db:   db,
 	}
 
 	server := &http.Server{

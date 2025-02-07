@@ -1,4 +1,4 @@
--- Up Migration
+-- Up
 CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -51,5 +51,5 @@ WHERE
 
 END;
 
--- Down Migration
+-- Down
 DROP TABLE IF EXISTS jobs;

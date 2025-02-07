@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
+	"jobTracker/internal/database"
 	"jobTracker/internal/server"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -34,13 +37,19 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 }
 
 func main() {
-	server := server.NewServer()
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Fatal("Port not found.")
+	}
+	db := database.New()
+
+	server := server.New(db, port)
 
 	done := make(chan bool, 1)
 
 	go gracefulShutdown(server, done)
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		panic(fmt.Sprintf("http server error: %s", err))
 	}

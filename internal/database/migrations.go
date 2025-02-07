@@ -2,6 +2,7 @@ package database
 
 import (
 	"embed"
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -18,7 +19,6 @@ func RunMigrations(db *sqlx.DB) error {
 		CREATE TABLE IF NOT EXISTS migrations (
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL,
-		name TEXT NOT NULL,
 		applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		)`)
 
@@ -27,7 +27,7 @@ func RunMigrations(db *sqlx.DB) error {
 		return err
 	}
 
-	appliedMigrations := make(map[string]bool)
+	applied := make(map[string]bool)
 	rows, err := db.Query("SELECT name FROM migrations")
 	if err != nil {
 		log.Errorf("Unable to get transactions due: %s", err)
@@ -42,7 +42,7 @@ func RunMigrations(db *sqlx.DB) error {
 			return err
 		}
 
-		appliedMigrations[name] = true
+		applied[name] = true
 	}
 
 	entries, err := migrationFiles.ReadDir("migrations")
@@ -61,53 +61,16 @@ func RunMigrations(db *sqlx.DB) error {
 	sort.Strings(migrations)
 
 	for _, migration := range migrations {
-		if appliedMigrations[migration] {
+		if applied[migration] {
 			log.Infof("Migration %s already applied.", migration)
 			continue
 		}
 
-		tx, err := db.Beginx()
-		if err != nil {
-			log.Errorf("Unable to start transaction due: %s", err)
+		log.Infof("Applying migrations '%s'", migration)
+		if err := applyMigration(db, migration); err != nil {
+			log.Errorf("Unable to apply migration due: %s", err)
 			return err
 		}
-
-		content, err := migrationFiles.ReadFile(filepath.Join("migrations", migration))
-		if err != nil {
-			tx.Rollback()
-			log.Errorf("Unable to read migration due: %s", err)
-			return err
-		}
-
-		sections := strings.Split(string(content), "-- Down")
-		if len(sections) != 2 {
-			tx.Rollback()
-			log.Errorf("Migration file %s has a invalid format.", migration)
-			return err
-		}
-
-		upMigration := strings.Split(sections[0], "-- Up")[1]
-
-		_, err = tx.Exec(upMigration)
-		if err != nil {
-			tx.Rollback()
-			log.Errorf("Unable to execute migration %s due: %s", migration, err)
-			return err
-		}
-
-		_, err = tx.Exec("INSERT INTO migrations (name) VALUES(?)", migration)
-		if err != nil {
-			tx.Rollback()
-			log.Errorf("Unable to add migration '%s 'to records due: %s", migration, err)
-			return err
-		}
-
-		if err := tx.Commit(); err != nil {
-			log.Error("Unable to commit transaction due: %s", err)
-			return err
-		}
-
-		log.Infof("Migration '%s' applied", migration)
 	}
 
 	return nil
@@ -122,6 +85,7 @@ func RollbackMigration(db *sqlx.DB) error {
 		return err
 	}
 
+	log.Infof("Rolling back migration '%s'", lastMigration)
 	cnt, err := migrationFiles.ReadFile(filepath.Join("migrations", lastMigration))
 	if err != nil {
 		log.Errorf("Failed to read migration file '%s' due: %s", lastMigration, err)
@@ -141,22 +105,73 @@ func RollbackMigration(db *sqlx.DB) error {
 		log.Errorf("Unable to begin transaction due: %s", err)
 		return err
 	}
+	defer tx.Rollback()
 
 	_, err = tx.Exec(downMigration)
 	if err != nil {
-		tx.Rollback()
 		log.Errorf("Unable to execute transaction due: %s", err)
 		return err
 	}
 
-	_, err = tx.Exec("DELTE FROM migrations WHERE name = ?", lastMigration)
+	_, err = tx.Exec("DELETE FROM migrations WHERE name = ?", lastMigration)
 	if err != nil {
-		tx.Rollback()
 		log.Errorf("Unable to remove migration '%s' from database due: %s", lastMigration, err)
 		return err
 	}
 
 	log.Infof("Rolled back migration %s", lastMigration)
 
+	return tx.Commit()
+}
+
+func RollbackAllMigrations(db *sqlx.DB) error {
+	for {
+		var count int
+		err := db.Get(&count, "SELECT COUNT(*) FROM migrations")
+		if err != nil {
+			return err
+		}
+		if count == 0 {
+			break
+		}
+
+		if err := RollbackMigration(db); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func applyMigration(db *sqlx.DB, migration string) error {
+	content, err := migrationFiles.ReadFile(filepath.Join("migrations", migration))
+	if err != nil {
+		log.Errorf("Unable to read '%s' due: %s", filepath.Join("migrations", migration), err)
+		return err
+	}
+
+	parts := strings.Split(string(content), "-- Down")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid migration format in %s", migration)
+	}
+
+	upSQL := strings.Split(parts[0], "-- Up")[1]
+
+	tx, err := db.Beginx()
+	if err != nil {
+		log.Errorf("Unable to start transaction due: %s", err)
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(strings.TrimSpace(upSQL)); err != nil {
+		log.Errorf("Unable to execute migration due: %s", err)
+		return err
+	}
+
+	if _, err := tx.Exec("INSERT INTO migrations (name) VALUES (?)", migration); err != nil {
+		log.Errorf("Unable to insert migration '%s' to database due: %s", migration, err)
+		return err
+	}
+
+	return tx.Commit()
 }

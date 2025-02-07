@@ -30,10 +30,5 @@ func New() *sqlx.DB {
 		log.Fatalf("Unable to connect to database due: %v", err)
 	}
 
-	if err := RunMigrations(db); err != nil {
-		log.Fatalf("Unable to run migrations due: %s", err)
-		return nil
-	}
-
 	return db
 }

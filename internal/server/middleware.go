@@ -3,6 +3,7 @@ package server
 import (
 	"jobTracker/internal/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,20 +20,21 @@ func CORSMiddlware() gin.HandlerFunc {
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		tokenStr := ctx.GetHeader("Authorization")
-		if tokenStr == "" {
+		authHeader := ctx.GetHeader("Authorization")
+		if authHeader == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Autohrization header required."})
 			ctx.Abort()
 			return
 		}
 
-		if utils.IsBlacklisted(tokenStr) {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or Unauthorized."})
+		tokenParts := strings.Split(authHeader, " ")
+		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
 			ctx.Abort()
 			return
 		}
 
-		claims, err := utils.ValidateJWT(tokenStr)
+		claims, err := utils.ValidateJWT(authHeader)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token!"})
 			ctx.Abort()

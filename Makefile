@@ -1,12 +1,10 @@
-# Simple Makefile for a Go project
-
 # Build the application
 all: build test
 
 build:
 	@echo "Building..."
-	
-	
+
+
 	@CGO_ENABLED=1 GOOS=linux go build -o main cmd/api/main.go
 
 # Run the application
@@ -59,5 +57,20 @@ watch:
             fi; \
         fi
 
+# Run migrations up
+migrate-up:
+	@go run ./cmd/migrations/main.go
+
+# Roll back last migration
+migrate-down:
+	@go run ./cmd/migrations/main.go -down
+
+# Roll back all migrations
+migrate-reset:
+	@go run ./cmd/migrations/main.go -down -all
+	@go run ./cmd/migrations/main.go
+
+# Full reset: down all migrations and up again
+db-reset: migrate-reset
 # Add a script to reload my database -> create a migration process
 .PHONY: all build run test clean watch
