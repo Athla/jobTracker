@@ -4,9 +4,36 @@ CREATE TABLE IF NOT EXISTS jobs (
     name TEXT NOT NULL,
     source TEXT NOT NULL,
     description TEXT,
-    status TEXT DEFAULT 'pending' CHECK (
-        status IN ('pending', 'in_progress', 'completed', 'rejected')
+    company TEXT NOT NULL,
+    salary_range TEXT,
+    job_type TEXT CHECK (
+        job_type IN (
+            'FULL_TIME',
+            'PART_TIME',
+            'CONTRACT',
+            'INTERNSHIP',
+            'REMOTE'
+        )
     ),
+    status TEXT CHECK (
+        status IN (
+            'WISHLIST',
+            'APPLIED',
+            'PHONE_SCREEN',
+            'TECHNICAL_INTERVIEW',
+            'ONSITE',
+            'OFFER',
+            'REJECTED',
+            'ACCEPTED',
+            'WITHDRAWN'
+        )
+    ) DEFAULT 'WISHLIST',
+    application_link TEXT,
+    rejection_reason TEXT,
+    notes TEXT,
+    interview_notes TEXT,
+    next_interview_date TIMESTAMP,
+    last_interaction_date TIMESTAMP,
     version INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -26,5 +53,3 @@ END;
 
 -- Down Migration
 DROP TABLE IF EXISTS jobs;
-
-DROP TABLE IF EXISTS users;
