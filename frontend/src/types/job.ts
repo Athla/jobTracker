@@ -19,19 +19,11 @@ export type JobStatus =
 export interface Job {
   id: string;
   name: string;
-  source: string;
-  description: string;
   company: string;
-  location?: string;
-  salary_range?: string;
+  source: string;
+  description?: string | null;
   job_type: JobType;
   status: JobStatus;
-  application_link?: string;
-  rejection_reason?: string;
-  notes?: string;
-  interview_notes?: string;
-  next_interview_date?: string;
-  last_interaction_date?: string;
   version: number;
   created_at: string;
   updated_at: string;

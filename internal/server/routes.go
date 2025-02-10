@@ -11,6 +11,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Use(CORSMiddlware())
 	r.POST("/login", s.LoginHandler)
+	r.POST("/logout", s.LogoutHandler, AuthMiddleware())
 	r.GET("/health", s.healthHandler)
 	r.GET("/", s.HelloWorldHandler)
 

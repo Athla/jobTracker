@@ -3,11 +3,11 @@ package database
 const (
 	CreateJobQuery = `
         INSERT INTO Jobs (
-            name, company, source, description, location, salary_range,
-            job_type, status, application_link, notes, created_at
+            name, company, source, description,
+            job_type, status, created_at
         ) VALUES (
-            :name, :company, :source, :description, :location, :salary_range,
-            :job_type, :status, :application_link, :notes, :created_at
+            :name, :company, :source, :description,
+            :job_type, :status, :created_at
         ) RETURNING id, version`
 
 	GetAllJobs = `
@@ -17,7 +17,9 @@ const (
         SELECT * FROM Jobs WHERE id = $1`
 
 	GetJobByStatusQuery = `
-            SELECT * FROM Jobs WHERE status = $1 created_at DESC`
+        SELECT * FROM Jobs
+        WHERE status = $1
+        ORDER BY created_at DESC`
 
 	UpdateJobQuery = `
         UPDATE Jobs
@@ -25,37 +27,34 @@ const (
             company = COALESCE($2, company),
             source = COALESCE($3, source),
             description = COALESCE($4, description),
-            location = COALESCE($5, location),
-            salary_range = COALESCE($6, salary_range),
-            job_type = COALESCE($7, job_type),
-            status = COALESCE($8, status),
-            application_link = COALESCE($9, application_link),
-            rejection_reason = COALESCE($10, rejection_reason),
-            notes = COALESCE($11, notes),
-            interview_notes = COALESCE($12, interview_notes),
-            next_interview_date = COALESCE($13, next_interview_date),
-            last_interaction_date = COALESCE($14, last_interaction_date)
-        WHERE id = $15 AND version = $16
+            job_type = COALESCE($5, job_type),
+            status = COALESCE($6, status),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $7 AND version = $8
         RETURNING version`
 
-	DeleteIdQuery = `
+	DeleteJobQuery = `
         DELETE FROM Jobs
         WHERE id = $1 AND version = $2`
 
-	DeleteAllQuery = `
+	DeleteAllJobsQuery = `
         DELETE FROM Jobs`
 
 	UpdateJobStatusQuery = `
         UPDATE Jobs
         SET status = COALESCE($1, status),
-            last_interaction_date = CURRENT_TIMESTAMP
+            updated_at = CURRENT_TIMESTAMP
         WHERE id = $2 AND version = $3
         RETURNING version`
 
 	GetJobsByBoardColumnQuery = `
-                SELECT * FROM Jobs
-                WHERE board_column = $1
-                ORDER BY board_position ASC`
+        SELECT * FROM Jobs
+        WHERE CASE
+            WHEN $1 = 'applied' THEN status IN ('WISHLIST', 'APPLIED')
+            WHEN $1 = 'in-progress' THEN status IN ('PHONE_SCREEN', 'TECHNICAL_INTERVIEW', 'ONSITE')
+            WHEN $1 = 'finished' THEN status IN ('OFFER', 'ACCEPTED', 'REJECTED', 'WITHDRAWN')
+        END
+        ORDER BY created_at DESC`
 
 	UpdateJobBoardPositionQuery = `
                 UPDATE Jobs

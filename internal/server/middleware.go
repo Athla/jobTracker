@@ -22,11 +22,12 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Autohrization header required."})
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
 			ctx.Abort()
 			return
 		}
 
+		// Extract token from "Bearer <token>"
 		tokenParts := strings.Split(authHeader, " ")
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
@@ -34,9 +35,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := utils.ValidateJWT(authHeader)
+		// Validate only the token part
+		claims, err := utils.ValidateJWT(tokenParts[1]) // Changed this line
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token!"})
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			ctx.Abort()
 			return
 		}
@@ -44,5 +46,4 @@ func AuthMiddleware() gin.HandlerFunc {
 		ctx.Set("username", claims.Username)
 		ctx.Next()
 	}
-
 }

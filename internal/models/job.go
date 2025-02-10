@@ -10,24 +10,16 @@ type JobType string
 type JobStatus string
 
 type Job struct {
-	ID                  string     `json:"id" db:"id"`
-	Name                string     `json:"name" db:"name"`
-	Source              string     `json:"source" db:"source"`
-	Description         string     `json:"description" db:"description"`
-	Company             string     `json:"company" db:"company"`
-	Location            string     `json:"location" db:"location"`
-	SalaryRange         string     `json:"salary_range" db:"salary_range"`
-	JobType             JobType    `json:"job_type" db:"job_type"`
-	Status              JobStatus  `json:"status" db:"status"`
-	ApplicationLink     string     `json:"application_link" db:"application_link"`
-	RejectionReason     string     `json:"rejection_reason" db:"rejection_reason"`
-	Notes               string     `json:"notes" db:"notes"`
-	InterviewNotes      string     `json:"interview_notes" db:"interview_notes"`
-	NextInterviewDate   *time.Time `json:"next_interview_date" db:"next_interview_date"`
-	LastInteractionDate *time.Time `json:"last_interaction_date" db:"last_interaction_date"`
-	Version             int        `json:"version" db:"version"`
-	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt           time.Time  `json:"updated_at" db:"updated_at"`
+	ID          string    `json:"id" db:"id"`
+	Name        string    `json:"name" db:"name"`
+	Company     string    `json:"company" db:"company"`
+	Source      string    `json:"source" db:"source"`
+	Description string    `json:"description,omitempty" db:"description"`
+	JobType     JobType   `json:"job_type" db:"job_type"`
+	Status      JobStatus `json:"status" db:"status"`
+	Version     int       `json:"version" db:"version"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // JobUpdate represents the fields that can be updated
@@ -67,11 +59,6 @@ const (
 	Rejected           JobStatus = "REJECTED"
 	Accepted           JobStatus = "ACCEPTED"
 	Withdrawn          JobStatus = "WITHDRAWN"
-
-	StatusPending    JobStatus = "pending"
-	StatusInProgress JobStatus = "in_progress"
-	StatusCompleted  JobStatus = "completed"
-	StatusRejected   JobStatus = "rejected"
 )
 
 func NewJob(name, company, source, description string, date string) (*Job, error) {
@@ -79,14 +66,13 @@ func NewJob(name, company, source, description string, date string) (*Job, error
 		return nil, ErrNoNameOrCompany
 	}
 	return &Job{
-		Name:        name,
-		Company:     company,
-		Source:      source,
-		Description: description,
-		Status:      Wishlist,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		Version:     1,
+		Name:      name,
+		Company:   company,
+		Source:    source,
+		Status:    Wishlist,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Version:   1,
 	}, nil
 }
 
@@ -116,7 +102,6 @@ func (j *Job) UpdateStatus(status JobStatus) error {
 	}
 
 	j.Status = status
-	j.LastInteractionDate = &time.Time{}
 
 	return nil
 }

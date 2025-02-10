@@ -50,14 +50,18 @@ func (s *Server) JobHandler(c *gin.Context) {
 		return
 	}
 
+	if jobs == nil {
+		jobs = []models.Job{}
+	}
+
 	c.JSON(http.StatusOK, jobs)
 }
 
 func (s *Server) CreateJobHandler(c *gin.Context) {
 	var job models.Job
 	if err := c.ShouldBindJSON(&job); err != nil {
-		log.Errorf("Unable to create new job due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create new job."})
+		log.Errorf("Unable to bind JSON due: %s", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -69,28 +73,28 @@ func (s *Server) CreateJobHandler(c *gin.Context) {
 	tx, err := s.db.Beginx()
 	if err != nil {
 		log.Errorf("Unable to start transaction due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
-
 	defer tx.Rollback()
 
 	result, err := tx.NamedExec(database.CreateJobQuery, job)
 	if err != nil {
-		log.Errorf("Unable to create new job due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error."})
+		log.Errorf("Unable to create job due: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create job"})
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
 		log.Errorf("Unable to commit transaction due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
+
 	id, _ := result.LastInsertId()
 	job.ID = strconv.Itoa(int(id))
 
-	c.JSON(http.StatusOK, job)
+	c.JSON(http.StatusCreated, job)
 }
 
 func (s *Server) DeleteJobHandler(c *gin.Context) {
@@ -110,7 +114,7 @@ func (s *Server) DeleteJobHandler(c *gin.Context) {
 
 	defer tx.Rollback()
 
-	result, err := tx.Exec(database.DeleteIdQuery, id, version)
+	result, err := tx.Exec(database.DeleteJobQuery, id, version)
 	if err != nil {
 		log.Errorf("Unable to delete job due: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete job."})
@@ -156,14 +160,14 @@ func (s *Server) UpdateJobStatusHandler(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&update); err != nil {
-		log.Errorf("Unable to bind update json due: %s", err)
+		log.Errorf("Unable to bind JSON due: %s", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
 	tx, err := s.db.Beginx()
 	if err != nil {
-		log.Errorf("Failed to start transaction: %v", err)
+		log.Errorf("Failed to start transaction due: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
@@ -176,43 +180,42 @@ func (s *Server) UpdateJobStatusHandler(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
 			return
 		}
-		log.Errorf("Failed to get job: %v", err)
+		log.Errorf("Failed to get job due: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
 	if err := currentJob.ValidateStatus(update.Status); err != nil {
-		log.Errorf("Unable to validate status due: %s", err)
+		log.Errorf("Invalid status transition due: %s", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var newVersion int
-	now := time.Now()
 	err = tx.QueryRow(
 		database.UpdateJobStatusQuery,
 		update.Status,
-		now,
 		id,
 		update.Version,
 	).Scan(&newVersion)
 
 	if err != nil {
-		log.Errorf("Failed to update job status: %v", err)
+		log.Errorf("Failed to update job status due: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job status"})
 		return
 	}
 
 	if err = tx.Commit(); err != nil {
-		log.Errorf("Failed to commit transaction: %v", err)
+		log.Errorf("Failed to commit transaction due: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
+	// Get updated job
 	var updatedJob models.Job
 	err = s.db.Get(&updatedJob, database.GetJobByIDQuery, id)
 	if err != nil {
-		log.Errorf("Failed to get updated job due: %v", err)
+		log.Errorf("Failed to get updated job due: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
@@ -222,41 +225,41 @@ func (s *Server) UpdateJobStatusHandler(c *gin.Context) {
 
 func (s *Server) EditJobHandler(c *gin.Context) {
 	id := c.Param("id")
-	var update models.JobUpdate
+	var update models.Job
 
 	if err := c.ShouldBindJSON(&update); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body."})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	tx, err := s.db.Beginx()
+	if err != nil {
+		log.Errorf("Failed to start transaction due: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
 	defer tx.Rollback()
 
 	var currentJob models.Job
 	err = tx.Get(&currentJob, database.GetJobByIDQuery, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found."})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
 			return
 		}
-
-		log.Errorf("Unable to get job due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error."})
-		return
-	}
-
-	if currentJob.Version != update.Version {
-		c.JSON(http.StatusConflict, gin.H{"error": "Job has been modified by another request."})
+		log.Errorf("Failed to get job due: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
 	var newVersion int
-
 	err = tx.QueryRow(
 		database.UpdateJobQuery,
 		update.Name,
+		update.Company,
 		update.Source,
 		update.Description,
+		update.JobType,
 		update.Status,
 		id,
 		update.Version,
@@ -264,28 +267,25 @@ func (s *Server) EditJobHandler(c *gin.Context) {
 
 	if err != nil {
 		log.Errorf("Failed to update job due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job"})
 		return
 	}
 
 	if err = tx.Commit(); err != nil {
-		log.Errorf("Unable to commit transaction due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Internal Server error.",
-		})
+		log.Errorf("Failed to commit transaction due: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
 	var updatedJob models.Job
 	err = s.db.Get(&updatedJob, database.GetJobByIDQuery, id)
 	if err != nil {
-		log.Errorf("Unable to get job due: %s", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error."})
+		log.Errorf("Failed to get updated job due: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
 	c.JSON(http.StatusOK, updatedJob)
-
 }
 
 func (s *Server) GetBoardHandler(c *gin.Context) {

@@ -1,135 +1,112 @@
-import { Job } from "@/types/job";
+import axios from "axios";
+import { Job, JobStatus } from "@/types/job";
 
 const API_URL = "http://localhost:8080";
 
-export interface APIError {
-  error: string;
-  code?: string;
-}
-
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  type: string;
-}
-
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    if (response.status === 401) {
-      localStorage.removeItem("auth_token");
-      window.location.reload();
-    }
-    const error = await response.json();
-    throw new Error(error.error || "An error occurred");
-  }
-
-  return response.json();
-}
-
-async function fetchWithAuth(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<Response> {
-  const token = localStorage.getItem("auth_token");
-  const headers = {
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
     "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-    ...options.headers,
-  };
+  },
+});
 
-  return fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-}
+// Add request interceptor to add auth token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("auth_token");
+  if (token) {
+    // Don't add "Bearer" prefix if it's already there
+    const tokenValue = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+    config.headers.Authorization = tokenValue;
+  }
+  return config;
+});
 
-export const AuthService = {
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
+// Add response interceptor to handle auth errors
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    console.error("API Error:", {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
     });
 
-    if (!response.ok) {
-      throw new Error("Login failed");
+    if (error.response?.status === 401) {
+      // Instead of redirecting, return a rejected promise with the error
+      return Promise.reject(new Error("Unauthorized"));
     }
+    return Promise.reject(error);
+  }
+);
 
-    return response.json();
+export const AuthAPI = {
+  login: async (username: string, password: string) => {
+    try {
+      const response = await api.post("/login", { username, password });
+      // Store token with Bearer prefix
+      const token = response.data.token;
+      const tokenWithBearer = token.startsWith("Bearer ")
+        ? token
+        : `Bearer ${token}`;
+      localStorage.setItem("auth_token", tokenWithBearer);
+      return response.data;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
   },
 
-  async logout(token: string): Promise<void> {
-    const response = await fetch(`${API_URL}/logout`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Logout failed");
+  logout: async () => {
+    try {
+      await api.post("/logout");
+      localStorage.removeItem("auth_token");
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
     }
   },
 };
 
 export const JobAPI = {
   getAll: async (): Promise<Job[]> => {
-    const response = await fetchWithAuth("/api/jobs");
-    return handleResponse<Job[]>(response);
-  },
-
-  get: async (id: string): Promise<Job[]> => {
-    const response = await fetchWithAuth(`/api/jobs/${id}`);
-    return handleResponse<Job[]>(response);
+    try {
+      const response = await api.get("/api/jobs");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      throw new Error("Failed to fetch jobs");
+    }
   },
 
   create: async (job: Partial<Job>): Promise<Job> => {
-    const response = await fetchWithAuth("/api/jobs", {
-      method: "POST",
-      body: JSON.stringify(job),
-    });
-
-    return handleResponse<Job>(response);
+    const response = await api.post("/api/jobs", job);
+    return response.data;
   },
 
   update: async (id: string, job: Partial<Job>): Promise<Job> => {
-    const response = await fetchWithAuth(`/api/jobs/${id}`, {
-      method: "POST",
-      body: JSON.stringify(job),
-    });
-
-    return handleResponse<Job>(response);
+    const response = await api.put(`/api/jobs/${id}`, job);
+    return response.data;
   },
 
-  updateStatus: async (id: string, job: Partial<Job>): Promise<Job> => {
-    const response = await fetchWithAuth(`/api/jobs/${id}/status`, {
-      method: "POST",
-      body: JSON.stringify(job),
-    });
-
-    return handleResponse<Job>(response);
+  updateStatus: async (
+    id: string,
+    update: { status: JobStatus; version: number }
+  ): Promise<Job> => {
+    try {
+      const response = await api.patch(`/api/jobs/${id}/status`, update);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to update job status due: ${error}`);
+    }
   },
 
-  delete: async (id: string, version: number): Promise<Job> => {
-    const response = await fetchWithAuth(`/api/jobs/${id}?version=${version}`, {
-      method: "DELETE",
-    });
-
-    return handleResponse<Job>(response);
+  delete: async (id: string, version: number): Promise<void> => {
+    await api.post(`/api/jobs/${id}?version=${version}`);
   },
 
-  deleteAll: async (): Promise<Job> => {
-    const response = await fetchWithAuth(`/api/jobs/deleteAll`, {
-      method: "DELETE",
-    });
-
-    return handleResponse<Job>(response);
+  deleteAll: async (): Promise<void> => {
+    await api.delete("/api/jobs/deleteAll");
   },
 };

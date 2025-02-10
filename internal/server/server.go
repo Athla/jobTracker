@@ -48,7 +48,7 @@ func (s *Server) DeleteAllJobs() error {
 		return err
 	}
 
-	if _, err := tx.Exec(database.DeleteAllQuery); err != nil {
+	if _, err := tx.Exec(database.DeleteAllJobsQuery); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -65,7 +65,7 @@ func (s *Server) DeleteJob(id *int) error {
 		return err
 	}
 
-	if _, err := tx.Exec(database.DeleteIdQuery, id); err != nil {
+	if _, err := tx.Exec(database.DeleteJobQuery, id); err != nil {
 		tx.Rollback()
 		return err
 	}

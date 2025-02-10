@@ -1,6 +1,7 @@
 import { Job } from "@/types/job";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface JobCardProps {
   job: Job;
@@ -19,40 +20,38 @@ const statusColors: Record<string, string> = {
 };
 
 const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="p-4">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-base font-semibold line-clamp-2">
+        <div className="space-y-2">
+          <CardTitle className="text-lg font-semibold line-clamp-2">
             {job.name}
           </CardTitle>
+          <p className="text-sm font-medium text-muted-foreground">
+            {job.company}
+          </p>
           <span
+            role="status"
+            aria-label={`Status: ${job.status}`}
             className={cn(
-              "px-2 py-1 rounded-full text-xs font-medium",
-              statusColors[job.status],
+              "inline-block px-2 py-1 rounded-full text-xs font-medium",
+              statusColors[job.status]
             )}
           >
-            {job.status.replace("_", " ")}
+            {job.status.replace(/_/g, " ")}
           </span>
         </div>
-        <p className="text-sm text-muted-foreground">{job.company}</p>
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{job.source}</p>
+          {job.source && (
+            <p className="text-sm text-muted-foreground">{job.source}</p>
+          )}
           {job.description && (
             <p className="text-sm line-clamp-2">{job.description}</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Created: {formatDate(job.created_at)}
+            Created: {format(new Date(job.created_at), "MMM d, yyyy")}
           </p>
         </div>
       </CardContent>

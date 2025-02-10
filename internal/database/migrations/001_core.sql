@@ -2,10 +2,9 @@
 CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
-    source TEXT NOT NULL,
-    description TEXT,
     company TEXT NOT NULL,
-    salary_range TEXT,
+    source TEXT NOT NULL,
+    description TEXT DEFAULT NULL,
     job_type TEXT CHECK (
         job_type IN (
             'FULL_TIME',
@@ -28,12 +27,6 @@ CREATE TABLE IF NOT EXISTS jobs (
             'WITHDRAWN'
         )
     ) DEFAULT 'WISHLIST',
-    application_link TEXT,
-    rejection_reason TEXT,
-    notes TEXT,
-    interview_notes TEXT,
-    next_interview_date TIMESTAMP,
-    last_interaction_date TIMESTAMP,
     version INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

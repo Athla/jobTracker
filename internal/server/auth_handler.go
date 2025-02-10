@@ -2,6 +2,7 @@ package server
 
 import (
 	"jobTracker/internal/auth"
+	"jobTracker/internal/utils"
 	"net/http"
 
 	"github.com/charmbracelet/log"
@@ -37,5 +38,26 @@ func (s *Server) LoginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"type":  "Bearer",
+	})
+}
+
+func (s *Server) LogoutHandler(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
+		return
+	}
+
+	claims, err := auth.ValidateToken(token)
+	if err != nil {
+		log.Errorf("Invalid token provided due: %s", err)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	utils.AddTokenToBlackList(token, claims.ExpiresAt)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully logged out",
 	})
 }

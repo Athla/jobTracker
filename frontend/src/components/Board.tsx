@@ -3,12 +3,12 @@ import {
   Droppable,
   Draggable,
   DropResult,
-  DroppableProvided,
-  DroppableStateSnapshot,
 } from "@hello-pangea/dnd";
 import { Job, JobStatus } from "@/types/job";
 import JobCard from "./JobCard";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface BoardProps {
   jobs: Job[];
@@ -39,52 +39,80 @@ const columns: Column[] = [
   },
 ];
 
-const Board: React.FC<BoardProps> = ({ jobs, onJobMove }) => {
-  const getColumnJobs = (statuses: JobStatus[]) => {
-    return jobs.filter((job) => statuses.includes(job.status));
-  };
+const Board: React.FC<BoardProps> = ({ jobs = [], onJobMove }) => {
+  // Add default empty array
+  const [organized, setOrganized] = useState<Record<string, Job[]>>({});
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
+  useEffect(() => {
+    const organizedJobs = columns.reduce((acc, column) => {
+      acc[column.id] = jobs.filter((job) =>
+        column.statuses.includes(job.status)
+      );
+      return acc;
+    }, {} as Record<string, Job[]>);
+    setOrganized(organizedJobs);
+  }, [jobs]);
 
-    const { draggableId, destination } = result;
-    const targetColumn = columns.find(
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination || !source) return;
+
+    const sourceColumn = columns.find((col) => col.id === source.droppableId);
+    const destColumn = columns.find(
       (col) => col.id === destination.droppableId
     );
 
-    if (!targetColumn) return;
+    if (!sourceColumn || !destColumn || sourceColumn.id === destColumn.id)
+      return;
 
-    // Default to the first status in the column's status list
-    const newStatus = targetColumn.statuses[0];
-    onJobMove(draggableId, newStatus);
+    try {
+      // Default to the first status in the destination column
+      const newStatus = destColumn.statuses[0];
+      onJobMove(draggableId, newStatus);
+
+      toast({
+        title: "Success",
+        description: "Job status updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to update job status due: ${error}`,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {columns.map(({ id, title, statuses }) => (
-          <div key={id} className="bg-card rounded-lg shadow-lg p-4">
-            <h2 className="text-xl font-semibold mb-4 text-card-foreground">
-              {title}
-              <span className="ml-2 text-sm text-muted-foreground">
-                ({getColumnJobs(statuses).length})
-              </span>
-            </h2>
-            <Droppable droppableId={id}>
-              {(
-                provided: DroppableProvided,
-                snapshot: DroppableStateSnapshot
-              ) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+        {columns.map((column) => (
+          <div key={column.id} className="bg-card rounded-lg shadow-lg">
+            <div className="p-4 border-b border-border">
+              <h2 className="text-xl font-semibold">
+                {column.title}
+                <span className="ml-2 text-sm text-muted-foreground">
+                  ({organized[column.id]?.length || 0})
+                </span>
+              </h2>
+            </div>
+            <Droppable droppableId={column.id}>
+              {(provided, snapshot) => (
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                   className={cn(
-                    "min-h-[200px] transition-colors",
-                    snapshot.isDraggingOver && "bg-accent/50 rounded-lg"
+                    "min-h-[500px] p-4 transition-colors",
+                    snapshot.isDraggingOver && "bg-accent/50"
                   )}
                 >
-                  <div className="space-y-3">
-                    {getColumnJobs(statuses).map((job, index) => (
+                  {organized[column.id]?.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      <p>No jobs in this column</p>
+                    </div>
+                  ) : (
+                    organized[column.id]?.map((job, index) => (
                       <Draggable
                         key={job.id}
                         draggableId={job.id}
@@ -96,16 +124,16 @@ const Board: React.FC<BoardProps> = ({ jobs, onJobMove }) => {
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                             className={cn(
-                              "transform transition-transform",
-                              snapshot.isDragging && "scale-105"
+                              "mb-3",
+                              snapshot.isDragging && "opacity-50"
                             )}
                           >
                             <JobCard job={job} />
                           </div>
                         )}
                       </Draggable>
-                    ))}
-                  </div>
+                    ))
+                  )}
                   {provided.placeholder}
                 </div>
               )}
@@ -116,5 +144,4 @@ const Board: React.FC<BoardProps> = ({ jobs, onJobMove }) => {
     </DragDropContext>
   );
 };
-
 export default Board;

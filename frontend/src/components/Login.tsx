@@ -1,42 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
+import { AuthAPI } from "@/services/api";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { AuthService } from "@/services/api";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "@/lib/validations";
+import type { z } from "zod";
 
-interface LoginFormData {
-  username: string;
-  password: string;
-}
+type LoginFormData = z.infer<typeof loginSchema>;
 
-interface LoginProps {
-  onLogin: (token: string) => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [isLoading, setIsLoading] = useState(false);
+export default function Login() {
+  const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const form = useForm<LoginFormData>();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await AuthService.login(data);
-      onLogin(response.token);
-      toast({
-        title: "Success",
-        description: "Successfully logged in",
-      });
+      const response = await AuthAPI.login(data.username, data.password);
+      console.log("Login response:", response);
+
+      if (response.token) {
+        login(response.token);
+        toast({
+          title: "Success",
+          description: "Logged in successfully",
+        });
+      } else {
+        throw new Error("No token received");
+      }
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -50,56 +67,48 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <Card className="max-w-md mx-auto mt-10">
-      <CardHeader>
-        <CardTitle>Login</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter username"
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Sign in</CardTitle>
+          <CardDescription>
+            Enter your credentials to access your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                {...register("username", { required: "Username is required" })}
+                type="text"
+                placeholder="Username"
+                disabled={isLoading}
+              />
+              {errors.username && (
+                <p className="text-sm text-destructive">
+                  {errors.username.message}
+                </p>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Enter password"
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            </div>
+            <div className="space-y-2">
+              <Input
+                {...register("password", { required: "Password is required" })}
+                type="password"
+                placeholder="Password"
+                disabled={isLoading}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
               )}
-            />
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Logging in..." : "Login"}
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-        </Form>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
-};
-
-export default Login;
+}
