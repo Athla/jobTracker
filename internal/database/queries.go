@@ -35,7 +35,7 @@ const (
 
 	DeleteJobQuery = `
         DELETE FROM Jobs
-        WHERE id = ? AND version = ?`
+        WHERE id = $1 AND version = $2`
 
 	DeleteAllJobsQuery = `
         DELETE FROM Jobs`

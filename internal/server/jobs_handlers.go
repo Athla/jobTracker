@@ -142,7 +142,6 @@ func (s *Server) DeleteJobHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Job deleted successfully!"})
 }
-
 func (s *Server) DeleteAllJobsHandler(c *gin.Context) {
 	if err := s.DeleteAllJobs(); err != nil {
 		log.Error(err)
