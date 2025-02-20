@@ -72,5 +72,8 @@ migrate-reset:
 
 # Full reset: down all migrations and up again
 db-reset: migrate-reset
+
+setup:
+	@go run ./cmd/setup/main.go
 # Add a script to reload my database -> create a migration process
 .PHONY: all build run test clean watch

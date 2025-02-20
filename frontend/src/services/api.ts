@@ -72,7 +72,7 @@ export const AuthAPI = {
 export const JobAPI = {
   getAll: async (): Promise<Job[]> => {
     try {
-      const response = await api.get("/api/jobs");
+      const response = await api.get("/api/jobs/");
       return response.data;
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -81,7 +81,7 @@ export const JobAPI = {
   },
 
   create: async (job: Partial<Job>): Promise<Job> => {
-    const response = await api.post("/api/jobs", job);
+    const response = await api.post("/api/jobs/", job);
     return response.data;
   },
 
