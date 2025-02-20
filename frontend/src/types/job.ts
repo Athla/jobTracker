@@ -14,7 +14,8 @@ export type JobStatus =
   | "OFFER"
   | "REJECTED"
   | "ACCEPTED"
-  | "WITHDRAWN";
+  | "WITHDRAWN"
+  | "INTERVIEWING";
 
 export interface Job {
   id: string;

@@ -90,6 +90,26 @@ export function useJobs() {
     }
   };
 
+  const deleteJob = async (jobId: string, version: number) => {
+    try {
+      await JobAPI.delete(jobId, version);
+      toast({
+        title: "Success",
+        description: "Job deleted successfully",
+      });
+      fetchJobs();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to create job";
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }
+
   return {
     jobs,
     isLoading,
@@ -97,5 +117,6 @@ export function useJobs() {
     fetchJobs,
     updateJob,
     createJob,
+    deleteJob,
   };
 }

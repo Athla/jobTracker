@@ -302,3 +302,51 @@ textarea {
 .delete-button {
   @apply transition-all duration-200 ease-in-out hover:rotate-12;
 }
+
+@layer utilities {
+  /* Smooth drag animations */
+  .draggable-item {
+    @apply transition-transform duration-200 ease-out cursor-grab active:cursor-grabbing;
+  }
+
+  .draggable-item:active {
+    @apply scale-[1.02] shadow-lg;
+  }
+
+  /* Smoother drop zone highlights */
+  .dropzone {
+    @apply transition-colors duration-200 ease-out;
+  }
+
+  .dropzone-active {
+    @apply bg-accent/30;
+  }
+}
+
+/* Add these base styles */
+.drag-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drag-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Improve drag handle feel */
+[data-rbd-drag-handle-draggable-id] {
+  cursor: grab !important;
+}
+
+[data-rbd-drag-handle-draggable-id]:active {
+  cursor: grabbing !important;
+}
+
+/* Add smooth transitions for drag and drop */
+.drag-drop-transition {
+  transition: transform 0.1s ease-in-out, opacity 0.1s ease-in-out;
+}
+
+/* Add smooth column transitions */
+.column-transition {
+  transition: background-color 0.1s ease-in-out;
+}

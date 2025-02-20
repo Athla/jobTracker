@@ -103,7 +103,7 @@ export const JobAPI = {
   },
 
   delete: async (id: string, version: number): Promise<void> => {
-    await api.post(`/api/jobs/${id}?version=${version}`);
+    await api.delete(`/api/jobs/${id}?version=${version}`);
   },
 
   deleteAll: async (): Promise<void> => {

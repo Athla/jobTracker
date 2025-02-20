@@ -2,6 +2,9 @@ import { Job } from "@/types/job";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useJobs } from "@/hooks/use-jobs";
+import { TrashIcon } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface JobCardProps {
   job: Job;
@@ -20,8 +23,9 @@ const statusColors: Record<string, string> = {
 };
 
 const JobCard: React.FC<JobCardProps> = ({ job }) => {
+  const { deleteJob } = useJobs()
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="transition-all duration-200 ease-in-out hover:shadow-lg">
       <CardHeader className="p-4">
         <div className="space-y-2">
           <CardTitle className="text-lg font-semibold line-clamp-2">
@@ -55,6 +59,8 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
           </p>
         </div>
       </CardContent>
+      <CardContent>
+        <Button variant={"destructive"} size={"icon"} onClick={() => deleteJob(job.id, job.version)}><TrashIcon /> </Button></CardContent>
     </Card>
   );
 };

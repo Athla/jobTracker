@@ -33,9 +33,14 @@ const columns: Column[] = [
     statuses: ["PHONE_SCREEN", "TECHNICAL_INTERVIEW", "ONSITE"],
   },
   {
-    id: "finished",
+    id: "Offers",
     title: "Finished",
-    statuses: ["OFFER", "ACCEPTED", "REJECTED", "WITHDRAWN"],
+    statuses: ["OFFER", "ACCEPTED"],
+  },
+  {
+    id: "finished",
+    title: "Rejected || Withdrawn",
+    statuses: ["REJECTED", "WITHDRAWN"],
   },
 ];
 
@@ -67,14 +72,9 @@ const Board: React.FC<BoardProps> = ({ jobs = [], onJobMove }) => {
       return;
 
     try {
-      // Default to the first status in the destination column
       const newStatus = destColumn.statuses[0];
       onJobMove(draggableId, newStatus);
 
-      toast({
-        title: "Success",
-        description: "Job status updated successfully",
-      });
     } catch (error) {
       toast({
         title: "Error",
@@ -86,7 +86,7 @@ const Board: React.FC<BoardProps> = ({ jobs = [], onJobMove }) => {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 w-full">
         {columns.map((column) => (
           <div key={column.id} className="bg-card rounded-lg shadow-lg">
             <div className="p-4 border-b border-border">
