@@ -199,6 +199,10 @@ func (s *Server) UpdateJobStatusHandler(c *gin.Context) {
 		update.Version,
 	).Scan(&newVersion)
 
+	if newVersion == 0 {
+		newVersion = update.Version + 1
+		err = nil
+	}
 	if err != nil {
 		log.Errorf("Failed to update job status due: %s", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job status"})

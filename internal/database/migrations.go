@@ -11,7 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-//go:embed migrations/*.sql
+//go:embed migrations/001_core.sql
 var migrationFiles embed.FS
 
 func RunMigrations(db *sqlx.DB) error {
