@@ -3,24 +3,32 @@ FROM node:22.5.0-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
-
+# Install pnpm
 RUN npm install -g pnpm
 
-RUN pnpm i
+# Copy package files
+COPY package*.json ./
 
-COPY . /app
+# Install dependencies
+RUN pnpm install
 
+# Copy source code
+COPY . .
+
+# Build the application
 RUN pnpm run build
 
-# Stage 02 - Serve with Nginx
+# Production stage
 FROM nginx:alpine
 
-# Copy built files from the builder stage to Nginx's default directory
+# Copy built files
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Expose port 80 for serving the app
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
 EXPOSE 80
 
-# Start Nginx server
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

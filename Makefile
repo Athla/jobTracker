@@ -20,6 +20,7 @@ docker-run:
 		echo "Falling back to Docker Compose V1"; \
 		docker-compose up --build; \
 	fi
+	@make setup
 
 # Shutdown DB container
 docker-down:

@@ -1,53 +1,152 @@
-# Project jobTracker
+# 🎯 JobTracker
 
-One Paragraph of project description goes here
+A modern, streamlined job application tracking system built with Go and React. Track your job search journey with ease and style.
 
-## Getting Started
+![JobTracker Dashboard](path_to_dashboard_screenshot.png)
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+## ✨ Features
 
-## MakeFile
+- 🔐 **Secure Authentication**: JWT-based authentication system
+- 📋 **Kanban Board**: Visual tracking of job applications across different stages
+- 🔄 **Status Tracking**: Monitor applications from wishlist to offer/rejection
+- 📱 **Responsive Design**: Seamless experience across all devices
+- 🔍 **Search & Filter**: Quickly find specific applications
+- 📊 **Analytics**: Track your application success rate
+- 🗃️ **Persistent Storage**: SQLite database with automatic backups
 
-Run build make command with tests
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose
+- Go 1.21+
+- Node.js 16+
+- Make (optional but recommended)
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-make all
+git clone https://github.com/yourusername/jobTracker.git
+cd jobTracker
 ```
 
-Build the application
+2. **Set up environment variables**
 ```bash
-make build
+cp .env.example .env
+# Edit .env with your preferred settings
 ```
 
-Run the application
+3. **Start the application**
 ```bash
-make run
-```
-Create DB container
-```bash
+# Using Make
 make docker-run
+
+# Or using Docker Compose directly
+docker-compose up --build
 ```
 
-Shutdown DB Container
-```bash
-make docker-down
+4. **Access the application**
+- Frontend: http://localhost:80
+- Backend API: http://localhost:8080
+
+### Default Credentials
+```
+Username: admin
+Password: admin
 ```
 
-DB Integrations Test:
-```bash
-make itest
+## 🏗️ Architecture
+
+```
+jobTracker/
+├── cmd/                    # Command line applications
+├── frontend/              # React frontend application
+├── internal/              # Internal packages
+│   ├── auth/             # Authentication logic
+│   ├── database/         # Database operations & migrations
+│   ├── models/           # Data models
+│   ├── server/           # HTTP server & handlers
+│   └── utils/            # Utility functions
+└── tests/                # Integration & unit tests
 ```
 
-Live reload the application:
+## 🛠️ Development
+
+### Available Make Commands
+
 ```bash
-make watch
+make build          # Build the application
+make run            # Run locally
+make docker-run     # Run with Docker
+make docker-down    # Stop Docker containers
+make test           # Run tests
+make watch          # Run with live reload
+make migrate-up     # Run database migrations
+make migrate-down   # Rollback last migration
+make db-reset       # Reset database
+make setup          # Initial setup
 ```
 
-Run the test suite:
-```bash
-make test
-```
+### API Endpoints
 
-Clean up binary from the last build:
-```bash
-make clean
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | /login   | Authenticate user |
+| GET    | /api/jobs | Get all jobs |
+| POST   | /api/jobs | Create new job |
+| PUT    | /api/jobs/:id | Update job |
+| DELETE | /api/jobs/:id | Delete job |
+| PATCH  | /api/jobs/:id/status | Update job status |
+
+## 📚 Tech Stack
+
+- **Backend**
+  - Go
+  - Gin (Web Framework)
+  - SQLite
+  - JWT Authentication
+
+- **Frontend**
+  - React
+  - TypeScript
+  - Tailwind CSS
+
+- **DevOps**
+  - Docker
+  - Make
+
+## 🔐 Security
+
+- Passwords are hashed using bcrypt
+- JWT tokens for authentication
+- CORS protection
+- SQL injection prevention
+- Input validation
+- Rate limiting
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 🙏 Acknowledgments
+
+- [Gin Web Framework](https://github.com/gin-gonic/gin)
+- [SQLite](https://www.sqlite.org/)
+- [React](https://reactjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
+## 📧 Contact
+
+Guilherme "grimm" Rodrigues - [@grimmacez](https://twitter.com/grimmacez) - guilher.c.rodrigues@gmail.com
+
+Project Link: [https://github.com/Athla/jobTracker](https://github.com/Athla/jobTracker)
+
+## Known Issues
+
+- Page Blinking
+- Page Reloading

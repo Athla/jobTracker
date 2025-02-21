@@ -10,16 +10,17 @@ import (
 
 func main() {
 	db := database.New()
+	defer db.Close()
 
 	user := os.Getenv("ADMIN_USERNAME")
 	if user == "" {
-		log.Fatalf("Error: ADMIN_USERNAME is a required enviroment variable.")
-		os.Exit(1)
+		user = "admin"
+		log.Error("Error: ADMIN_USERNAME is a required enviroment variable.")
 	}
 	pwd := os.Getenv("ADMIN_PASSWORD")
 	if pwd == "" {
-		log.Fatalf("Error: ADMIN_PWD is a required enviroment variable.")
-		os.Exit(1)
+		pwd = "adminpwd"
+		log.Error("Error: ADMIN_PWD is a required enviroment variable.")
 	}
 
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
@@ -29,9 +30,9 @@ func main() {
 	}
 
 	_, err = db.Exec(`
-        insert into admin_user (username, password_hash)
-        values (?, ?)
-        on conflict(username) do update set password_hash = ?`,
+        INSERT INTO admin_user (username, password_hash)
+        VALUES (?, ?)
+        ON CONFLICT(username) DO UPDATE SET PASSWORD_HASH = ?`,
 		user, hashedPwd, hashedPwd)
 	if err != nil {
 		log.Fatalf("Unable to setup admin user correctly due: %s", err)

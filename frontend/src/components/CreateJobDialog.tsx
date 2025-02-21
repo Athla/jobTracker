@@ -124,9 +124,9 @@ export default function CreateJobDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      value={""}
-                      placeholder="Job description..."
                       {...field}
+                      placeholder="Job description..."
+                      value={field.value || ''} // Convert null to empty string
                     />
                   </FormControl>
                   <FormMessage />

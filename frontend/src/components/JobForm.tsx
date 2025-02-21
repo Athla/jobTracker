@@ -1,8 +1,9 @@
 import { useState } from "react";
-import JobCard, { Job } from "./CardJob";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select"; // You'll need to create this component
 import { Card } from "@/components/ui/card";
+import { Job } from "@/types/job";
+import JobCard from "./JobCard";
 
 type Status = "APPLIED" | "INTERVIEW" | "REJECTED" | "ACCEPTED" | "ALL";
 
@@ -11,15 +12,15 @@ interface JobListProps {
   onDelete: (id: string) => void;
 }
 
-function JobList({ jobs, onDelete }: JobListProps) {
+function JobList({ jobs }: JobListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status>("ALL");
 
   const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = job.Name.toLowerCase().includes(
+    const matchesSearch = job.name.toLowerCase().includes(
       searchTerm.toLowerCase(),
     );
-    const matchesStatus = statusFilter === "ALL" || job.Status === statusFilter;
+    const matchesStatus = statusFilter === "ALL" || job.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -49,9 +50,8 @@ function JobList({ jobs, onDelete }: JobListProps) {
         {filteredJobs.length > 0 ? (
           filteredJobs.map((job) => (
             <JobCard
-              key={job.Id}
+              key={job.id}
               job={job}
-              onDelete={(id: string | number) => onDelete(String(id))}
             />
           ))
         ) : (
